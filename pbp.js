@@ -25,7 +25,7 @@ const getPBP = async (gameids, cb) => {
         let result = await page.evaluate(() => {
             let [away, home] = selectAll("td.team-name").map(x => x.innerText);
 
-            let starters = selectAll('ul.playerfilter li[data-homeaway="away"]:nth-child(-n+6):not(:first-child').map(x => x.innerText);
+            let starters = selectAll('ul.playerfilter li:nth-child(-n+6):not(:first-child').map(x => x.innerText);
 
             let basic = {
                 away: {
@@ -34,7 +34,7 @@ const getPBP = async (gameids, cb) => {
                 },
                 home: {
                     team: home,
-                    starters: starters.slice(0,5)
+                    starters: starters.slice(5,10)
                 },
             }
 
@@ -73,14 +73,12 @@ const getPBP = async (gameids, cb) => {
             }
         })
 
-        console.log(JSON.stringify(result, null, 2))
-
-        await page.close()
 
         cb(gameid, result)
         return result;
     })
 
+    await page.close()
     await browser.close()
 
     return;
