@@ -1,3 +1,5 @@
+const AA = Array.from;
+
 class ScrapeError extends Error {
     constructor() {
         super();
@@ -10,6 +12,15 @@ const select = (selector, name = selector) => {
     if (el === null) {
         throw new ScrapeError(`${name} element not found`);
     }
+    return el;
+}
+
+const selectAll = (selector, name = selector) => {
+    const els = document.querySelectorAll(selector);
+    if (els.length === 0) {
+        throw new ScrapeError(`${name} elements not found`);
+    }
+    return Array.from(els);
 }
 
 const toSeconds = (q, m, s) => {
@@ -51,12 +62,33 @@ const asyncForEach = async (arr, cb) => {
             console.error(e);
         }
     }
-    console.log('async foreach done')
     return true;
+}
+
+const logoToTeam = el => {
+    const match = el.src.match(/(\w{3})\.png/);
+    if (match === null) {
+        throw new ScrapeError('Logo did not contain team');
+    }
+    return match[1].toUpperCase();
+}
+
+const processTimeEl = el => {
+    const { innerText } = el;
+    const msMatch = innerText.match(/(\d\d?)\:(\d\d)/);
+    if (msMatch === null) { 
+        const sdMatch = innerText.match(/(\d\d?)\.\d/);
+        if (sdMatch === null) {
+            throw new ScrapeError('Time element did not contain timestamp');
+        }
+        return [0, Number(sdMatch[1])]
+    }
+    return [msMatch[1], msMatch[2]].map(Number);
 }
 
 module.exports = {
     select,
+    selectAll,
     toSeconds,
     toPrettyTime,
     asyncForEach
