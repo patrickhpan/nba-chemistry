@@ -1,9 +1,9 @@
 const AA = Array.from;
 
 class ScrapeError extends Error {
-    constructor() {
+    constructor(msg) {
         super();
-        this.name = "ScrapeError";
+        this.name = `ScrapeError: ${msg}`;
     }
 }
 
@@ -66,7 +66,7 @@ const asyncForEach = async (arr, cb) => {
 }
 
 const logoToTeam = el => {
-    const match = el.src.match(/(\w{3})\.png/);
+    const match = el.children[0].src.match(/(\w{3})\.png/);
     if (match === null) {
         throw new ScrapeError('Logo did not contain team');
     }
@@ -84,6 +84,44 @@ const processTimeEl = el => {
         return [0, Number(sdMatch[1])]
     }
     return [msMatch[1], msMatch[2]].map(Number);
+}
+
+const processScoreEl = el => {
+    const { innerText } = el;
+    const match = innerText.match(/(\d+) - (\d+)/);
+    if (match === null) {
+        throw new ScrapeError('Score element did not contain score');
+    }
+    return {
+        away: Number(match[1]),
+        home: Number(match[2])
+    }
+}
+
+const processDetail = el => {
+    const { innerText } = el;
+    const scoreMatch = innerText.match(/([\w ]+)makes(.+free)?(.+three)?/);
+    if (scoreMatch !== null) {
+        const { 1: player, 2: ft, 3: three } = scoreMatch;
+        const points = ft ? 1 : (three ? 3 : 2);
+        return {
+            event: "score",
+            player: player.trim(),
+            points
+        }
+    }
+
+    const switchMatch = innerText.match(/([\w ]+) enters the game for ([\w ]+)/);
+    if (switchMatch !== null) {
+        const { 1: subIn, 2: subOut } = switchMatch;
+        return {
+            event: "switch",
+            subIn: subIn.trim(),
+            subOut: subOut.trim()
+        }
+    }
+
+    return null;
 }
 
 module.exports = {

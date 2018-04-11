@@ -16,30 +16,61 @@ const getPBP = async (gameids, cb) => {
     const page = await browser.newPage();
 
     await asyncForEach(gameids, async gameid => {
-        const url = toURL(gameid);
-
         await page.setViewport({ width: 1000, height: 2000 })
+
+        const url = toURL(gameid);
         await page.goto(url);
         await page.addScriptTag({ path: './lib.js' })
 
         let result = await page.evaluate(() => {
+            let [away, home] = selectAll("td.team-name").map(x => x.innerText);
+
+            let starters = selectAll('ul.playerfilter li[data-homeaway="away"]:nth-child(-n+6):not(:first-child').map(x => x.innerText);
+
+            let basic = {
+                away: {
+                    team: away,
+                    starters: starters.slice(0,5)
+                },
+                home: {
+                    team: home,
+                    starters: starters.slice(0,5)
+                },
+            }
+
             let bodies = selectAll('#gamepackage-qtrs-wrap tbody');
 
-            let a = [];
+            let pbp = [];
             bodies.forEach((body, q) => { 
                 let rows = AA(body.children);
                 rows.forEach(row => {
                     const tds = AA(row.children);
 
-                    const { 0: timeEl, 1: logoEl, 2: textEl, 3: scoreEl } = tds;
-                    const [m, s] = processTimeEl(timeEl);
-                    const timestamp = toSeconds(q + 1, m, s);
+                    const { 0: timeEl, 1: logoEl, 2: detailEl, 3: scoreEl } = tds;
 
-                    a.push(timestamp);
+                    let event = processDetail(detailEl);
+                    if (event === null) {
+                        return;
+                    }
+
+                    const [m, s] = processTimeEl(timeEl);
+                    const time = toSeconds(q + 1, m, s);
+                    const team = logoToTeam(logoEl) === away ? 'AWAY' : 'HOME';
+                    const score = processScoreEl(scoreEl);
+
+                    pbp.push({
+                        time,
+                        prettyTime: toPrettyTime(time),
+                        score,
+                        event: { team, ...event }
+                    })
                 })
             })
 
-            return a;
+            return {
+                basic,
+                pbp
+            }
         })
 
         console.log(JSON.stringify(result, null, 2))
