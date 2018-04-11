@@ -66,7 +66,7 @@ const asyncForEach = async (arr, cb) => {
 }
 
 const logoToTeam = el => {
-    const match = el.children[0].src.match(/(\w{3})\.png/);
+    const match = el.children[0].src.match(/(\w{2,3})\.png/);
     if (match === null) {
         throw new ScrapeError('Logo did not contain team');
     }
