@@ -100,24 +100,24 @@ const processScoreEl = el => {
 
 const processDetail = el => {
     const { innerText } = el;
-    const scoreMatch = innerText.match(/([\w ]+)makes(.+free)?(.+three)?/);
+    const scoreMatch = innerText.match(/([\w'\.\- ]+)makes(.+free)?(.+three)?/);
     if (scoreMatch !== null) {
         const { 1: player, 2: ft, 3: three } = scoreMatch;
         const points = ft ? 1 : (three ? 3 : 2);
         return {
-            event: "score",
+            type: "score",
             player: player.trim(),
             points
         }
     }
 
-    const switchMatch = innerText.match(/([\w ]+) enters the game for ([\w ]+)/);
+    const switchMatch = innerText.match(/([\w'\.\- ]*)enters the game for ?([\w'\.\- ]*)/);
     if (switchMatch !== null) {
         const { 1: subIn, 2: subOut } = switchMatch;
         return {
-            event: "switch",
-            subIn: subIn.trim(),
-            subOut: subOut.trim()
+            type: "switch",
+            subIn: subIn.trim() || null,
+            subOut: subOut.trim() || null
         }
     }
 
