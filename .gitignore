@@ -3,3 +3,4 @@ csv
 data
 node_modules
 _browser.js
+**/.ipynb_checkpoints

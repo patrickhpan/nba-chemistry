@@ -66,7 +66,7 @@ const asyncForEach = async (arr, cb) => {
 }
 
 const logoToTeam = el => {
-    const match = el.children[0].src.match(/(\w{2,3})\.png/);
+    const match = el.children[0].src.match(/(\w{2,4})\.png/);
     if (match === null) {
         throw new ScrapeError('Logo did not contain team');
     }
@@ -120,6 +120,34 @@ const processDetail = el => {
             subOut: subOut.trim() || null
         }
     }
+
+    const missMatch = innerText.match(/([\w'\.\- ]+)misses/);
+    if (missMatch !== null) {
+        const { 1: player } = missMatch;
+        return {
+            type: "miss",
+            player: player.trim()
+        }
+    }
+
+    const rbMatch = innerText.match(/([\w'\.\- ]+)(offensive|defensive) rebound/);
+    if (rbMatch !== null) {
+        const { 1: player } = rbMatch;
+        return {
+            type: "rebound",
+            player: player.trim()
+        }
+    }
+
+    const toMatch = innerText.match(/([\w'\.\- ]+)turnover/);
+    if (toMatch !== null) {
+        const { 1: player } = toMatch;
+        return {
+            type: "turnover",
+            player: player.trim()
+        }
+    }
+    
 
     return null;
 }
